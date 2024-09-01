@@ -4,8 +4,30 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
+	"strconv"
 	"strings"
 	"unicode"
+)
+
+type Room struct {
+	Name string
+	X    int
+	Y    int
+}
+type Farm struct {
+	Rooms map[string]Room
+	Links map[string][]string
+}
+type Path struct {
+	rooms    []string
+	roomsNum int
+}
+
+var (
+	startCounter int
+	endCounter   int
+	coords       = make(map[[2]int]bool)
+	farm         Farm
 )
 
 func main() {
@@ -19,10 +41,19 @@ func main() {
 		fmt.Println("error while opening the file")
 		os.Exit(0)
 	}
-
-	if err := HandelInput(lines); err != nil{
-		fmt.Println("Error: ", err )
+	farm = Farm{
+		Rooms: make(map[string]Room),
+		Links: make(map[string][]string),
 	}
+
+	if err := HandelInput(lines); err != nil {
+		fmt.Println("Error: ", err)
+	}
+
+	if err := HandelRoomInfo(lines); err != nil {
+		fmt.Println("Error: ", err)
+	}
+
 
 }
 
@@ -34,7 +65,6 @@ func ReadFile(FileName string) ([]string, error) {
 	lines := strings.Split(string(data), "\n")
 	return lines, nil
 }
-
 
 func HandelInput(lines []string) error {
 	var antCount string
@@ -66,7 +96,7 @@ func HandelInput(lines []string) error {
 		if line == "##start" {
 			if antCount == "" {
 				return fmt.Errorf("no ants found")
-				
+
 			}
 			// Print '##start' line
 			fmt.Println(line)
@@ -83,5 +113,48 @@ func HandelInput(lines []string) error {
 			break
 		}
 	}
+	return nil
+}
+
+func HandelRoomInfo(lines []string) error {
+	for i, line := range lines {
+		line = strings.TrimSpace(line)
+
+		if line == "##start" {
+			if startCounter > 0 {
+				return  fmt.Errorf("multiple start rooms found")
+			}
+			if i >= len(lines)-3 {
+				return fmt.Errorf("invalid sentyx")
+			}
+			startRoomInfo := strings.TrimSpace(lines[i+1])
+			if len(startRoomInfo) != 5 {
+				return fmt.Errorf("invalid start info")
+			}
+			err:= addRoom(string(startRoomInfo[0]), string(startRoomInfo[2]), string(startRoomInfo[4]))
+			if err != nil{
+				return err
+			}
+			
+
+		}
+	}
+	return nil
+}
+func addRoom(name string, xi string, yi string) error {
+	x, err := strconv.Atoi(xi)
+	if err != nil {
+		return fmt.Errorf("invalid x coordinate for room %s", name)
+	}
+	y, err := strconv.Atoi(yi)
+	if err != nil {
+		return fmt.Errorf("invalid y coordinate for room %s", name)
+	}
+	if _, exists := farm.Rooms[name]; exists {
+		return fmt.Errorf("duplicate room name: %s", name)
+	}
+	room := Room{Name: name, X: x, Y: y}
+	farm.Rooms[name] = room
+	fmt.Println(room.Name)
 	return nil
 }
