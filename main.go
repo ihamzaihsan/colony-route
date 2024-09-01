@@ -1,8 +1,8 @@
 package main
 
 import (
-	"bufio"
 	"fmt"
+	"io/ioutil"
 	"os"
 	"strings"
 	"unicode"
@@ -14,20 +14,33 @@ func main() {
 		return
 	}
 	inputFile := os.Args[1]
-	file, err := os.Open(inputFile)
+	lines, err := ReadFile(inputFile)
 	if err != nil {
-		fmt.Println("Error:", err)
-		return
+		fmt.Println("error while opening the file")
+		os.Exit(0)
 	}
-	defer file.Close()
 
-	scanner := bufio.NewScanner(file)
+	if err := HandelInput(lines); err != nil{
+		fmt.Println("Error: ", err )
+	}
+
+}
+
+func ReadFile(FileName string) ([]string, error) {
+	data, err := ioutil.ReadFile(FileName)
+	if err != nil {
+		return nil, err
+	}
+	lines := strings.Split(string(data), "\n")
+	return lines, nil
+}
+
+
+func HandelInput(lines []string) error {
 	var antCount string
 	printLine := false
 
-	for scanner.Scan() {
-		line := strings.TrimSpace(scanner.Text())
-
+	for _, line := range lines {
 		// Ignore lines containing '$'
 		if strings.Contains(line, "$") {
 			continue
@@ -52,8 +65,8 @@ func main() {
 
 		if line == "##start" {
 			if antCount == "" {
-				fmt.Println("Error: No ants found")
-				return
+				return fmt.Errorf("no ants found")
+				
 			}
 			// Print '##start' line
 			fmt.Println(line)
@@ -70,8 +83,5 @@ func main() {
 			break
 		}
 	}
-
-	if err := scanner.Err(); err != nil {
-		fmt.Println("Error reading file:", err)
-	}
+	return nil
 }
