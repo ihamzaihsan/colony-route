@@ -26,6 +26,8 @@ type Path struct {
 var (
 	startCounter int
 	endCounter   int
+	startRoom    Room
+	endRoom      Room
 	coords       = make(map[[2]int]bool)
 	farm         Farm
 )
@@ -53,7 +55,6 @@ func main() {
 	if err := HandelRoomInfo(lines); err != nil {
 		fmt.Println("Error: ", err)
 	}
-
 
 }
 
@@ -117,31 +118,67 @@ func HandelInput(lines []string) error {
 }
 
 func HandelRoomInfo(lines []string) error {
-	for i, line := range lines {
-		line = strings.TrimSpace(line)
+    for i := 0; i < len(lines); i++ {
+        line := strings.TrimSpace(lines[i])
 
-		if line == "##start" {
-			if startCounter > 0 {
-				return  fmt.Errorf("multiple start rooms found")
-			}
-			if i >= len(lines)-3 {
-				return fmt.Errorf("invalid sentyx")
-			}
-			startRoomInfo := strings.TrimSpace(lines[i+1])
-			if len(startRoomInfo) != 5 {
-				return fmt.Errorf("invalid start info")
-			}
-			err:= addRoom(string(startRoomInfo[0]), string(startRoomInfo[2]), string(startRoomInfo[4]))
-			if err != nil{
-				return err
-			}
-			
+        if line == "##start" {
+            if startCounter > 0 {
+                return fmt.Errorf("multiple start rooms found")
+            }
+            if i >= len(lines)-1 {
+                return fmt.Errorf("invalid syntax")
+            }
+            i++
+            startRoomInfo := strings.TrimSpace(lines[i])
+            StartInfo := strings.Split(startRoomInfo, " ")
+            if len(StartInfo) != 3 {
+                return fmt.Errorf("invalid start info")
+            }
+            err := addRoom(StartInfo[0], StartInfo[1], StartInfo[2], "start")
+            if err != nil {
+                return err
+            }
+            startCounter++
+            continue // Skip the next iteration
+        }
 
-		}
-	}
-	return nil
+        if line == "##end" {
+            if endCounter > 0 {
+                return fmt.Errorf("multiple end rooms found")
+            }
+            if i >= len(lines)-1 {
+                return fmt.Errorf("invalid syntax")
+            }
+            i++
+            endRoomInfo := strings.TrimSpace(lines[i])
+            endInfo := strings.Split(endRoomInfo, " ")
+            if len(endInfo) != 3 {
+                return fmt.Errorf("invalid end info")
+            }
+            err := addRoom(endInfo[0], endInfo[1], endInfo[2], "end")
+            if err != nil {
+                return err
+            }
+            endCounter++
+            continue // Skip the next iteration
+        }
+
+        // Process normal rooms (not start or end)
+        if strings.Contains(line, " ") && !strings.Contains(line, "-") && line != "##start" && line != "##end" {
+            NormalRoomInfo := strings.Split(strings.TrimSpace(line), " ")
+            if len(NormalRoomInfo) != 3 {
+                return fmt.Errorf("invalid room info")
+            }
+            err := addRoom(NormalRoomInfo[0], NormalRoomInfo[1], NormalRoomInfo[2], "Normal")
+            if err != nil {
+                return err
+            }
+        }
+    }
+    return nil
 }
-func addRoom(name string, xi string, yi string) error {
+
+func addRoom(name string, xi string, yi string, roomType string) error {
 	x, err := strconv.Atoi(xi)
 	if err != nil {
 		return fmt.Errorf("invalid x coordinate for room %s", name)
@@ -151,10 +188,23 @@ func addRoom(name string, xi string, yi string) error {
 		return fmt.Errorf("invalid y coordinate for room %s", name)
 	}
 	if _, exists := farm.Rooms[name]; exists {
+		fmt.Println(farm.Rooms)
+		fmt.Println(name, x, y)
 		return fmt.Errorf("duplicate room name: %s", name)
+	}
+	coord := [2]int{x, y}
+	if coords[coord] {
+		return fmt.Errorf("duplicate room coordinates: %d %d", x, y)
 	}
 	room := Room{Name: name, X: x, Y: y}
 	farm.Rooms[name] = room
-	fmt.Println(room.Name)
+	coords[coord] = true
+	//fmt.Println(room.Name)
+	if roomType == "start" {
+		startRoom = room
+	}
+	if roomType == "end" {
+		endRoom = room
+	}
 	return nil
 }
