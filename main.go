@@ -208,3 +208,21 @@ func addRoom(name string, xi string, yi string, roomType string) error {
 	}
 	return nil
 }
+
+// parseLink processes a link definition line
+func parseLink(line string) error {
+    parts := strings.Split(line, "-")
+    if len(parts) != 2 {
+        return fmt.Errorf("invalid link format: %s", line)
+    }
+    room1, room2 := parts[0], parts[1]
+    if _, exists := farm.Rooms[room1]; !exists {
+        return fmt.Errorf("unknown room in link: %s", room1)
+    }
+    if _, exists := farm.Rooms[room2]; !exists {
+        return fmt.Errorf("unknown room in link: %s", room2)
+    }
+    farm.Links[room1] = append(farm.Links[room1], room2)
+    farm.Links[room2] = append(farm.Links[room2], room1)
+    return nil
+}
