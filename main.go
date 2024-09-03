@@ -232,3 +232,13 @@ func parseLink(line string) error {
 	farm.Links[room2] = append(farm.Links[room2], room1)
 	return nil
 }
+
+// reconstructPath builds the path from start to end using the parent map
+func reconstructPath(parent map[string]string, start, end string) []string {
+    path := []string{end}
+    for current := end; current != start; {
+        current = parent[current]
+        path = append([]string{current}, path...)
+    }
+    return path
+}
