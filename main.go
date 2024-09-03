@@ -52,7 +52,7 @@ func main() {
 		fmt.Println("Error: ", err)
 	}
 
-	if err := HandelRoomInfo(lines); err != nil {
+	if err := HandleRoomInfo(lines); err != nil {
 		fmt.Println("Error: ", err)
 	}
 
@@ -117,65 +117,71 @@ func HandelInput(lines []string) error {
 	return nil
 }
 
-func HandelRoomInfo(lines []string) error {
-    for i := 0; i < len(lines); i++ {
-        line := strings.TrimSpace(lines[i])
+func HandleRoomInfo(lines []string) error {
+	for i := 0; i < len(lines); i++ {
+		line := strings.TrimSpace(lines[i])
 
-        if line == "##start" {
-            if startCounter > 0 {
-                return fmt.Errorf("multiple start rooms found")
-            }
-            if i >= len(lines)-1 {
-                return fmt.Errorf("invalid syntax")
-            }
-            i++
-            startRoomInfo := strings.TrimSpace(lines[i])
-            StartInfo := strings.Split(startRoomInfo, " ")
-            if len(StartInfo) != 3 {
-                return fmt.Errorf("invalid start info")
-            }
-            err := addRoom(StartInfo[0], StartInfo[1], StartInfo[2], "start")
-            if err != nil {
-                return err
-            }
-            startCounter++
-            continue // Skip the next iteration
-        }
+		if line == "##start" {
+			if startCounter > 0 {
+				return fmt.Errorf("multiple start rooms found")
+			}
+			if i >= len(lines)-1 {
+				return fmt.Errorf("invalid syntax")
+			}
+			i++
+			startRoomInfo := strings.TrimSpace(lines[i])
+			StartInfo := strings.Split(startRoomInfo, " ")
+			if len(StartInfo) != 3 {
+				return fmt.Errorf("invalid start info")
+			}
+			err := addRoom(StartInfo[0], StartInfo[1], StartInfo[2], "start")
+			if err != nil {
+				return err
+			}
+			startCounter++
+			continue // Skip the next iteration
+		}
 
-        if line == "##end" {
-            if endCounter > 0 {
-                return fmt.Errorf("multiple end rooms found")
-            }
-            if i >= len(lines)-1 {
-                return fmt.Errorf("invalid syntax")
-            }
-            i++
-            endRoomInfo := strings.TrimSpace(lines[i])
-            endInfo := strings.Split(endRoomInfo, " ")
-            if len(endInfo) != 3 {
-                return fmt.Errorf("invalid end info")
-            }
-            err := addRoom(endInfo[0], endInfo[1], endInfo[2], "end")
-            if err != nil {
-                return err
-            }
-            endCounter++
-            continue // Skip the next iteration
-        }
+		if line == "##end" {
+			if endCounter > 0 {
+				return fmt.Errorf("multiple end rooms found")
+			}
+			if i >= len(lines)-1 {
+				return fmt.Errorf("invalid syntax")
+			}
+			i++
+			endRoomInfo := strings.TrimSpace(lines[i])
+			endInfo := strings.Split(endRoomInfo, " ")
+			if len(endInfo) != 3 {
+				return fmt.Errorf("invalid end info")
+			}
+			err := addRoom(endInfo[0], endInfo[1], endInfo[2], "end")
+			if err != nil {
+				return err
+			}
+			endCounter++
+			continue // Skip the next iteration
+		}
 
-        // Process normal rooms (not start or end)
-        if strings.Contains(line, " ") && !strings.Contains(line, "-") && line != "##start" && line != "##end" {
-            NormalRoomInfo := strings.Split(strings.TrimSpace(line), " ")
-            if len(NormalRoomInfo) != 3 {
-                return fmt.Errorf("invalid room info")
-            }
-            err := addRoom(NormalRoomInfo[0], NormalRoomInfo[1], NormalRoomInfo[2], "Normal")
-            if err != nil {
-                return err
-            }
-        }
-    }
-    return nil
+		// Process normal rooms (not start or end)
+		if strings.Contains(line, " ") && !strings.Contains(line, "-") && line != "##start" && line != "##end" {
+			NormalRoomInfo := strings.Split(strings.TrimSpace(line), " ")
+			if len(NormalRoomInfo) != 3 {
+				return fmt.Errorf("invalid room info")
+			}
+			err := addRoom(NormalRoomInfo[0], NormalRoomInfo[1], NormalRoomInfo[2], "Normal")
+			if err != nil {
+				return err
+			}
+		}
+		if strings.Contains(line, "-") {
+			err := parseLink(line)
+			if err != nil {
+				return err
+			}
+		}
+	}
+	return nil
 }
 
 func addRoom(name string, xi string, yi string, roomType string) error {
@@ -211,18 +217,18 @@ func addRoom(name string, xi string, yi string, roomType string) error {
 
 // parseLink processes a link definition line
 func parseLink(line string) error {
-    parts := strings.Split(line, "-")
-    if len(parts) != 2 {
-        return fmt.Errorf("invalid link format: %s", line)
-    }
-    room1, room2 := parts[0], parts[1]
-    if _, exists := farm.Rooms[room1]; !exists {
-        return fmt.Errorf("unknown room in link: %s", room1)
-    }
-    if _, exists := farm.Rooms[room2]; !exists {
-        return fmt.Errorf("unknown room in link: %s", room2)
-    }
-    farm.Links[room1] = append(farm.Links[room1], room2)
-    farm.Links[room2] = append(farm.Links[room2], room1)
-    return nil
+	parts := strings.Split(line, "-")
+	if len(parts) != 2 {
+		return fmt.Errorf("invalid link format: %s", line)
+	}
+	room1, room2 := parts[0], parts[1]
+	if _, exists := farm.Rooms[room1]; !exists {
+		return fmt.Errorf("unknown room in link: %s", room1)
+	}
+	if _, exists := farm.Rooms[room2]; !exists {
+		return fmt.Errorf("unknown room in link: %s", room2)
+	}
+	farm.Links[room1] = append(farm.Links[room1], room2)
+	farm.Links[room2] = append(farm.Links[room2], room1)
+	return nil
 }
