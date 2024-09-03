@@ -1,6 +1,7 @@
 package main
 
 import (
+	"container/list"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -235,10 +236,33 @@ func parseLink(line string) error {
 
 // reconstructPath builds the path from start to end using the parent map
 func reconstructPath(parent map[string]string, start, end string) []string {
-    path := []string{end}
-    for current := end; current != start; {
-        current = parent[current]
-        path = append([]string{current}, path...)
-    }
-    return path
+	path := []string{end}
+	for current := end; current != start; {
+		current = parent[current]
+		path = append([]string{current}, path...)
+	}
+	return path
+}
+
+// bfs performs a breadth-first search to find an augmenting path
+func bfs(start, end string, graph map[string]map[string]int) ([]string, bool) {
+	queue := list.New()
+	queue.PushBack(start)
+	visited := make(map[string]bool)
+	parent := make(map[string]string)
+	visited[start] = true
+	for queue.Len() > 0 {
+		current := queue.Remove(queue.Front()).(string)
+		if current == end {
+			return reconstructPath(parent, start, end), true
+		}
+		for neighbor, capacity := range graph[current] {
+			if !visited[neighbor] && capacity > 0 {
+				visited[neighbor] = true
+				parent[neighbor] = current
+				queue.PushBack(neighbor)
+			}
+		}
+	}
+	return nil, false
 }
