@@ -266,3 +266,33 @@ func bfs(start, end string, graph map[string]map[string]int) ([]string, bool) {
 	}
 	return nil, false
 }
+
+// findPathsEdmondsKarp implements the Edmonds-Karp algorithm to find multiple paths
+func findPathsEdmondsKarp(startRoomName, endRoomName string) []Path {
+    var paths []Path
+    residualGraph := make(map[string]map[string]int)
+
+    // Initialize residual graph
+    for room, links := range farm.Links {
+        residualGraph[room] = make(map[string]int)
+        for _, link := range links {
+            residualGraph[room][link] = 1
+        }
+    }
+ // Find augmenting paths until no more are found
+    for {
+        path, found := bfs(startRoomName, endRoomName, residualGraph)
+        if !found {
+            break
+        }
+        paths = append(paths, Path{rooms: path, roomsNum: len(path)})
+
+        // Update residual graph 
+        for i := 0; i < len(path)-1; i++ {
+            residualGraph[path[i]][path[i+1]]--
+            residualGraph[path[i+1]][path[i]]++
+        }
+    }
+
+    return paths
+}
