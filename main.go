@@ -41,8 +41,8 @@ func main() {
 	inputFile := os.Args[1]
 	lines, err := ReadFile(inputFile)
 	if err != nil {
-		fmt.Println("error while opening the file")
-		os.Exit(0)
+		fmt.Println("Error: error while opening the file")
+		return
 	}
 	farm = Farm{
 		Rooms: make(map[string]Room),
@@ -50,12 +50,12 @@ func main() {
 	}
 
 	if err := HandelInput(lines); err != nil {
-		fmt.Println("Error: ", err)
+		fmt.Printf("Error: %s\n", err)
 		return
 	}
 
 	if err := HandleRoomInfo(lines); err != nil {
-		fmt.Println("Error: ", err)
+		fmt.Printf("Error: %s\n", err)
 		return
 	}
 
@@ -75,11 +75,18 @@ func main() {
 		return
 	}
 
+	// If we reach here, there are no errors, so we can print the file contents and proceed
+	for _, line := range lines {
+		fmt.Println(line)
+	}
+	fmt.Println()
+
 	// Move ants through the found paths
 	totalSteps := moveAnts(numAnts, paths)
 
 	fmt.Printf("\nTotal steps: %d\n", totalSteps)
 }
+
 func ReadFile(FileName string) ([]string, error) {
 	data, err := ioutil.ReadFile(FileName)
 	if err != nil {
@@ -94,7 +101,12 @@ func HandelInput(lines []string) error {
 	printLine := false
 
 	for _, line := range lines {
-		// Ignore lines containing '$'
+		// Skip empty lines
+		if line == "" {
+			continue
+		}
+
+		// Ignore lines containing '```
 		if strings.Contains(line, "$") {
 			continue
 		}
@@ -110,7 +122,7 @@ func HandelInput(lines []string) error {
 		}
 
 		// Check for ant count before '##start'
-		if antCount == "" && line != "" && line != "##start" {
+		if antCount == "" && line != "##start" {
 			antCount = line
 			fmt.Println(antCount)
 			continue
@@ -119,7 +131,6 @@ func HandelInput(lines []string) error {
 		if line == "##start" {
 			if antCount == "" {
 				return fmt.Errorf("no ants found")
-
 			}
 			// Print '##start' line
 			fmt.Println(line)
@@ -138,7 +149,10 @@ func HandelInput(lines []string) error {
 	}
 	return nil
 }
+		
 
+	
+		
 func HandleRoomInfo(lines []string) error {
 	for i := 0; i < len(lines); i++ {
 		line := strings.TrimSpace(lines[i])
@@ -381,3 +395,4 @@ func moveAnts(numAnts int, paths []Path) int {
     }
     return totalSteps
 }
+
