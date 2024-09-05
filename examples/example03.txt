@@ -1,16 +1,30 @@
 4
+#afsifsdf
 4 5 4
+#afsifsdf
 ##start
 0 1 4
+#afsifsdf
 1 3 6
+#afsifsdf
 ##end
 5 6 4
+#afsifsdf
 2 3 4
+#afsifsdf
 3 3 1
+#afsifsdf
 0-1
+#afsifsdf
+#afsifsdf
 2-4
 1-4
+#afsifsdf
 0-2
+#afsifsdf
 4-5
+#afsifsdf
 3-0
+#afsifsdf
 4-3
+qasdifnaifaiofan
