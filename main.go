@@ -51,14 +51,35 @@ func main() {
 
 	if err := HandelInput(lines); err != nil {
 		fmt.Println("Error: ", err)
+		return
 	}
 
 	if err := HandleRoomInfo(lines); err != nil {
 		fmt.Println("Error: ", err)
+		return
 	}
 
-}
+	// Get the number of ants from the first line
+	numAnts, err := strconv.Atoi(lines[0])
+	if err != nil {
+		fmt.Println("Error: Invalid number of ants")
+		return
+	}
 
+	// Find paths using Edmonds-Karp algorithm
+	paths := findPathsEdmondsKarp(startRoom.Name, endRoom.Name)
+
+	// If no paths found, print an error and exit
+	if len(paths) == 0 {
+		fmt.Println("Error: No valid paths found")
+		return
+	}
+
+	// Move ants through the found paths
+	totalSteps := moveAnts(numAnts, paths)
+
+	fmt.Printf("\nTotal steps: %d\n", totalSteps)
+}
 func ReadFile(FileName string) ([]string, error) {
 	data, err := ioutil.ReadFile(FileName)
 	if err != nil {
@@ -295,4 +316,68 @@ func findPathsEdmondsKarp(startRoomName, endRoomName string) []Path {
     }
 
     return paths
+}
+
+
+// moveAnts simulates the movement of ants through the found paths
+func moveAnts(numAnts int, paths []Path) int {
+    antPath := make(map[int]int)
+    antPosition := make(map[int]int)
+    InPath := make([]int, len(paths))
+    for antID := 1; antID <= numAnts; antID++ {
+        pathIndex := 0
+        minCost := InPath[0] + paths[0].roomsNum
+        for i := 1; i < len(paths); i++ {
+            cost := paths[i].roomsNum + InPath[i]
+            if minCost > cost {
+                minCost = cost
+                pathIndex = i
+            }
+        }
+        antPath[antID] = pathIndex
+        InPath[pathIndex]++
+    }
+    antsOutside := make(map[int][]int)
+    for i := 0; i < len(paths); i++ {
+        antsOutside[i] = make([]int, 0)
+    }
+    for i := 1; i <= len(antPath); i++ {
+        antsOutside[antPath[i]] = append(antsOutside[antPath[i]], i)
+    }
+    antsInside := make(map[int][]int)
+    var antMoving bool
+    var output string
+    totalSteps := 0
+    for step := 1; ; step++ {
+        antMoving = false
+        for pathIndex := 0; pathIndex < len(paths); pathIndex++ {
+            for j := 0; j < len(antsInside[pathIndex]); j++ {
+                if antPosition[antsInside[pathIndex][j]] < paths[pathIndex].roomsNum-1 {
+                    antMoving = true
+                    antPosition[antsInside[pathIndex][j]]++
+                    output += fmt.Sprintf("L%d-%s ", antsInside[pathIndex][j], paths[pathIndex].rooms[antPosition[antsInside[pathIndex][j]]])
+                }
+            }
+        }
+        for pathIndex := 0; pathIndex < len(paths); pathIndex++ {
+            for len(antsOutside[pathIndex]) != 0 {
+                if antPosition[antsOutside[pathIndex][0]] < paths[pathIndex].roomsNum-1 {
+                    antMoving = true
+                    antPosition[antsOutside[pathIndex][0]]++
+                    output += fmt.Sprintf("L%d-%s ", antsOutside[pathIndex][0], paths[pathIndex].rooms[antPosition[antsOutside[pathIndex][0]]])
+                    antID := antsOutside[pathIndex][0]
+                    antsInside[pathIndex] = append(antsInside[pathIndex], antID)
+                    antsOutside[pathIndex] = antsOutside[pathIndex][1:]
+                    break
+                }
+            }
+        }
+        if !antMoving {
+            totalSteps = step - 1 // Subtract 1 because the last step doesn't move any ants
+            break
+        }
+        fmt.Println(output)
+        output = ""
+    }
+    return totalSteps
 }
