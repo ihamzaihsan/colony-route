@@ -3,7 +3,6 @@ package main
 import (
 	"container/list"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"strconv"
 	"strings"
@@ -45,20 +44,21 @@ func main() {
 		fmt.Println("Error: error while opening the file")
 		return
 	}
-	
+
 	// Remove empty lines
 	lines = removeEmptyLines(lines)
-	
+
 	farm = Farm{
 		Rooms: make(map[string]Room),
 		Links: make(map[string][]string),
 	}
-	if isStartEndExist(lines) == false {
+	if !isStartEndExist(lines) {
 		fmt.Println("no start or end room is found")
 		os.Exit(0)
 	}
+	num := strings.TrimSpace(lines[0])
+	numAnts, err := strconv.Atoi(num)
 
-	numAnts, err := strconv.Atoi(lines[0])
 	if err != nil || numAnts <= 0 || numAnts > 10000 {
 		fmt.Println("Error: Invalid number of ants")
 		return
@@ -89,9 +89,8 @@ func main() {
 	fmt.Printf("\nTotal steps: %d\n", totalSteps)
 }
 
-
 func ReadFile(FileName string) ([]string, error) {
-	data, err := ioutil.ReadFile(FileName)
+	data, err := os.ReadFile(FileName)
 	if err != nil {
 		return nil, err
 	}
@@ -224,18 +223,18 @@ func parseLink(line string) error {
 		return fmt.Errorf("invalid link format: %s", line)
 	}
 	room1, room2 := parts[0], parts[1]
-	
+
 	if room1 == room2 {
 		return fmt.Errorf("self-loop detected in link: %s", line)
 	}
-	
+
 	if _, exists := farm.Rooms[room1]; !exists {
 		return fmt.Errorf("unknown room in link: %s", room1)
 	}
 	if _, exists := farm.Rooms[room2]; !exists {
 		return fmt.Errorf("unknown room in link: %s", room2)
 	}
-	
+
 	// Check for duplicate connections
 	for _, connectedRoom := range farm.Links[room1] {
 		if connectedRoom == room2 {
@@ -251,10 +250,9 @@ func parseLink(line string) error {
 	// Add the connection to the map
 	farm.Links[room1] = append(farm.Links[room1], room2)
 	farm.Links[room2] = append(farm.Links[room2], room1)
-	
+
 	return nil
 }
-
 
 // reconstructPath builds the path from start to end using the parent map
 func reconstructPath(parent map[string]string, start, end string) []string {
@@ -440,4 +438,3 @@ func removeEmptyLines(lines []string) []string {
 	}
 	return result
 }
-
