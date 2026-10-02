@@ -1,30 +1,55 @@
-# lem-in
+# ColonyRoute: Graph Routing Simulator
+
+A Go command-line application that reads an ant-farm graph from a text file,
+finds routes between its start and end rooms, distributes ants across those
+routes, and prints their movement turn by turn.
+
+## Screenshot
+
+![ColonyRoute running the bundled example02 input and reporting ant movement and total steps](docs/colonyroute-screenshot.png)
+
+Actual console output from `go run main.go examples/example02.txt`.
+
+## Features
+
+- **Input parsing:** reads ant counts, room names, coordinates, and tunnel connections.
+- **Validation:** checks duplicate rooms and coordinates, invalid links, self-loops,
+  and missing or repeated start/end rooms.
+- **Graph routing:** uses breadth-first search to find augmenting paths in a
+  residual graph.
+- **Route allocation:** assigns ants using path length and the number already
+  assigned to each route.
+- **Movement simulation:** prints ant movements and a total step count.
+
+## Run locally
+
+Install a Go version compatible with the repository's `go.mod`, then run from
+the repository root with your input file:
+
+```sh
+go run main.go path/to/input.txt
+```
+
+To try the bundled example shown above:
+
+```sh
+go run main.go examples/example02.txt
+```
+
+The input describes the number of ants, rooms with coordinates, start/end
+markers (`##start` and `##end`), and tunnel connections such as `room1-room2`.
+
+## Implementation notes
+
+The routing function is named `findPathsEdmondsKarp` and uses BFS with residual
+capacity updates. The implementation has not been verified to guarantee
+minimum-turn routing or collision-free movement on every graph.
 
 ## Authors
+
+Originally created collaboratively by:
+
 - mohaabdulla
 - nahussain
 - hussainali2
--hcheema
-## Information
-
-lem-in is a program designed to simulate the movement of ants through an ant farm, finding the quickest path from a start room to an end room. It reads input from a file, validates the data, finds all possible paths using Depth-First Search (DFS), filters unique paths, and simulates the movement of ants along these paths.
-
-## Features
-- input parsing: Input Parsing: Reads and validates input data describing rooms and tunnels.
-- Pathfinding: Uses DFS to find all possible paths from the start room to the end room.
-- Path Filtering: Filters unique paths ensuring each room is visited only once per ant.
-- Ant Movement Simulation: Simulates the movement of ants along the shortest paths found.
-- Error Hadling: Detects and reports errors such as invalid room formats, duplicate rooms, unknown rooms in links, and missing start or end rooms.
-
-## Usage Instructions
-
-- run the program with a test of you choice or the tests in the exampls directory using the following command:
-
-`go run main.go <your_input_file.txt>` or `go run main.go ./examples/test.txt`
-
-- run the program using the bash script which will show the oputput of all the tests with the following command:
-
-`bash test.sh`
-
-
-
+- hcheema
